@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://Scripts/Game.gd" type="Script" id=1]
+[ext_resource path="res://Assets/texture_01.png" type="Texture" id=3]
+
+[node name="Game" type="Node"]
+script = ExtResource( 1 )
+
+[node name="TextureRect" type="TextureRect" parent="."]
+margin_left = -1605.0
+margin_top = -989.0
+margin_right = 1582.0
+margin_bottom = 1002.0
+texture = ExtResource( 3 )
+stretch_mode = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Borders" type="StaticBody2D" parent="."]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Borders"]
+polygon = PoolVector2Array( -1284.57, -719.319, -1284.57, 719.09, 1280.6, 719.09, 1277.17, -722.744, -1291.8, -720.622, -1334.15, -842.92, 1409.1, -836.07, 1368, 804.401, -1402.65, 811.25, -1368.4, -825.796, -1292.32, -719.021 )
