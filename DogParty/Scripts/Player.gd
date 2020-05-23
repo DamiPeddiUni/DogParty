@@ -3,8 +3,11 @@ extends KinematicBody2D
 const MOVE_SPEED = 500;
 const MAX_HP = 100;
 
+var myId;
+
 puppet var slave_position = Vector2();
 puppet var slave_movement = Vector2();
+puppet var slave_direction = 1;
 
 var health_points = MAX_HP;
 
@@ -13,24 +16,23 @@ var bite = load("res://Prefab/Bite.tscn");
 func init(name, pos, is_slave):
 	$nameLabel.text = name;
 	global_position = pos
-	print("instantiating player is_slave: " + str(is_slave));
 	if is_slave:
-		print('slave')
 		$Camera2D.current = false;
 		$AnimatedSprite.get_material().set_shader_param("outline_color", Color.red);
 	else:
 		$Camera2D.current = true;
-		print('not slave')
 		$AnimatedSprite.get_material().set_shader_param("outline_color", Color.white);
+	myId = get_tree().get_network_unique_id();
 	
 	
 	
 
 func _ready():
-	### I added this from Game.gd ###
+	get_tree().connect('server_disconnected', self, '_on_server_disconnected', [], CONNECT_DEFERRED)
+	
 	var mat = $AnimatedSprite.get_material().duplicate(true)
 	$AnimatedSprite.set_material(mat)
-	### end ###
+	
 	
 func _physics_process(delta):
 	
@@ -51,6 +53,7 @@ func _physics_process(delta):
 		
 		rset_unreliable("slave_position", position);
 		rset("slave_movement", direction);
+		rset("slave_direction", -1 if $AnimatedSprite.flip_h else 1);
 		_move(direction);
 		
 		if Input.is_action_just_pressed("attackQ"):
@@ -64,6 +67,7 @@ func _physics_process(delta):
 		_move(slave_movement);
 		position = slave_position;
 		
+		
 	if get_tree().is_network_server():
 		Network.update_position(int(name), position);
 		
@@ -72,9 +76,19 @@ func _physics_process(delta):
 		
 func _move(direction):
 	$AnimatedSprite.play("run" if direction != Vector2.ZERO else "idle");
-	if direction.x != 0:
-		$AnimatedSprite.flip_h = direction.x < 0;
+
+	if is_network_master():
+		$AnimatedSprite.flip_h = get_global_mouse_position().x < position.x;
+	else:
+		$AnimatedSprite.flip_h = true if slave_direction == -1 else false;
+		
 	move_and_collide(direction.normalized() * MOVE_SPEED * get_physics_process_delta_time());
+	
+	
+func _on_server_disconnected():
+	get_node("/root/Game").queue_free()
+	get_tree().set_network_peer(null);
+	get_tree().change_scene("res://Scenes/StartMenu.tscn");
 	
 	
 	

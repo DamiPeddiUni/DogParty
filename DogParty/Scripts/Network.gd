@@ -9,7 +9,7 @@ const MAX_PLAYERS = 4;
 var players = {}
 var self_data = {
 	name = "", 
-	position = Vector2(0, 0)
+	position = Vector2(0, 0),
 }
 var host_IP
 
@@ -17,7 +17,7 @@ onready var network = NetworkedMultiplayerENet;
 
 func _ready():
 	get_tree().connect("network_peer_disconnected", self, "_player_disconnect");
-	
+	get_tree().connect("connected_to_server", self, "_connected_to_server");
 	### this signal is useful !
 	get_tree().connect("network_peer_connected", self, "_player_connected");
 	### end
@@ -38,7 +38,7 @@ func create_server():
 
 func connect_to_server():
 #	self_data.name = player_nickname;
-	get_tree().connect("connected_to_server", self, "_connected_to_server");
+	
 	var peer = network.new();
 	peer.create_client(host_IP, DEFAULT_PORT);
 	get_tree().set_network_peer(peer);
@@ -52,21 +52,20 @@ func _connected_to_server():
 #	rpc('_send_player_info', get_tree().get_network_unique_id(), self_data)
 ### end
 ### However you can pop yourself here !
+	print("BBBBBBBBBBBBBBBB");
 	pop_player(get_tree().get_network_unique_id(), self_data)
 ### end
 
 
 func _player_connected(id):
 	print("Player connected: " + str(id));
-	### I send my infos to the player I connected with
-	### this is handful since this callback will be called for every peer
-	### to peer connection
 	pop_player(id)
 	rpc_id(id, "_send_player_info", get_tree().get_network_unique_id(), self_data)
 	### end
 
 func _player_disconnect(id):
 	print("Player disconnected: " + str(id));
+	get_tree().get_root().get_node(str(id)).queue_free();
 	players.erase(id);
 	### there might be more things to do here ? Don't know :-)
 	
@@ -92,6 +91,8 @@ remote func _send_player_info(id, info):
 func update_position(id, position):
 	if players.has(id):
 		players[id].position = position;
+		
+
 	
 	
 

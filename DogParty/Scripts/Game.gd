@@ -3,8 +3,7 @@ extends Node
 
 func _ready():
 	Network.start()
-	get_tree().connect('network_peer_disconnected', self, '_on_player_disconnected')
-	get_tree().connect('server_disconnected', self, '_on_server_disconnected')
+	
 	get_tree().connect('connection_failed', self, '_on_connected_failed');
 	### I moved the following in Network.gd to avoid duplicating player instancing logic
 #	var new_player = preload('res://Prefab/Player.tscn').instance();
@@ -22,17 +21,13 @@ func _ready():
 	### end
 	
 func _process(delta):
-	for peer_id in Network.players:
+	#for peer_id in Network.players:
 		#print(Network.players[peer_id].name);
-		pass
-		
-func _on_player_disconnected(id):
-	#get_node(str(id)).queue_free()
 	pass
+		
 
-func _on_server_disconnected():
-	get_tree().disconnect_network_peer(get_tree().get_network_unique_id());
-	get_tree().change_scene("res://Scenes/StartMenu.tscn");
+
+
 	
 func _on_connected_failed():
 	get_tree().change_scene("res://Scenes/StartMenu.tscn");
